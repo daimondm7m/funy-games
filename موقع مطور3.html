@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>موقع الألعاب الممتعة</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo&display=swap');
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: linear-gradient(135deg, #6a33ff, #3b0f6f);
+    margin: 0; padding: 0; min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #eee;
+    user-select: none;
+  }
+  h1 {
+    margin: 30px 0 10px 0;
+    font-size: 38px;
+    text-shadow: 0 0 12px #9e75ffcc;
+  }
+  .player-name-container {
+    margin-bottom: 25px;
+  }
+  input#playerName {
+    font-size: 20px;
+    padding: 12px 18px;
+    border-radius: 30px;
+    border: none;
+    width: 260px;
+    outline: none;
+    box-shadow: 0 0 12px #a074ffaa;
+    text-align: center;
+    color: #333;
+  }
+  input#playerName::placeholder {
+    color: #999;
+  }
+  nav.menu {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px;
+    max-width: 900px;
+    margin-bottom: 30px;
+  }
+  nav.menu button {
+    background: linear-gradient(135deg, #a57aff, #5a2abb);
+    border: none;
+    border-radius: 30px;
+    color: white;
+    font-size: 18px;
+    padding: 14px 28px;
+    cursor: pointer;
+    font-weight: 700;
+    box-shadow: 0 4px 10px #8b51ff88;
+    transition: all 0.3s ease;
+    user-select: none;
+    white-space: nowrap;
+  }
+  nav.menu button:hover {
+    background: linear-gradient(135deg, #5a2abb, #a57aff);
+    transform: scale(1.07);
+    box-shadow: 0 6px 16px #b98cffcc;
+  }
+  .game {
+    background: #f0eaff11;
+    box-shadow: 0 0 35px #8a2be2bb inset;
+    border-radius: 22px;
+    padding: 30px 40px;
+    max-width: 500px;
+    width: 90vw;
+    text-align: center;
+    display: none;
+    color: #eee;
+    user-select: none;
+  }
+  .game.active {
+    display: block;
+  }
+  .status {
+    margin-top: 18px;
+    font-weight: 700;
+    font-size: 18px;
+    min-height: 28px;
+    color: #c8b4ff;
+    text-shadow: 0 0 4px #a074ffbb;
+  }
+  #top10-section {
+    background: #321b6dbb;
+    padding: 20px 25px;
+    margin: 25px 0;
+    border-radius: 20px;
+    max-width: 480px;
+    width: 90vw;
+    color: #d8caff;
+    box-shadow: 0 0 35px #9b6dffcc;
+  }
+  #top10-section h3 {
+    margin-bottom: 14px;
+    text-align: center;
+    font-weight: 900;
+    text-shadow: 0 0 10px #c49affaa;
+  }
+  #top10-list li {
+    list-style: none;
+    padding: 6px 0;
+    font-weight: 700;
+    font-size: 17px;
+    border-bottom: 1px solid #7a59a3aa;
+  }
+  #show-top10-btn {
+    background: linear-gradient(45deg, #8c47ff, #4b0f6f);
+    border: none;
+    color: #eee;
+    font-weight: 900;
+    font-size: 20px;
+    padding: 12px 28px;
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 0 20px #8c47ffbb;
+    transition: all 0.3s ease;
+    margin-bottom: 10px;
+  }
+  #show-top10-btn:hover {
+    background: linear-gradient(45deg, #4b0f6f, #8c47ff);
+    box-shadow: 0 0 26px #b98cffcc;
+    transform: scale(1.05);
+  }
+  .notification-bar {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #a57aff, #5a2abb);
+    color: white;
+    padding: 14px 28px;
+    border-radius: 22px;
+    box-shadow: 0 0 26px #9b6dffcc;
+    display: none;
+    z-index: 9999;
+    font-weight: 800;
+    font-size: 18px;
+    user-select: none;
+    animation: fadeinout 5s forwards;
+    max-width: 320px;
+    text-align: center;
+  }
+  @keyframes fadeinout {
+    0% {opacity: 0; transform: translateY(-25px);}
+    10% {opacity: 1; transform: translateY(0);}
+    90% {opacity: 1; transform: translateY(0);}
+    100% {opacity: 0; transform: translateY(-25px);}
+  }
+
+  /* بطاقات لعبة الذاكرة */
+  .memory-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 80px);
+    grid-template-rows: repeat(4, 100px);
+    gap: 18px;
+    justify-content: center;
+    margin-top: 25px;
+  }
+  .memory-card {
+    width: 80px;
+    height: 100px;
+    background: linear-gradient(135deg, #8156ff, #46279e);
+    border-radius: 16px;
+    box-shadow: 0 0 15px #6a3affcc inset;
+    cursor: pointer;
+    perspective: 1100px;
+    position: relative;
+  }
+  .memory-card.flip .front {
+    transform: rotateY(0deg);
+  }
+  .memory-card.flip .back {
+    transform: rotateY(180deg);
+  }
+  .memory-card .front,
+  .memory-card .back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 16px;
+    backface-visibility: hidden;
+    top: 0; left: 0;
+    transition: transform 0.5s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 46px;
+    user-select: none;
+  }
+  .memory-card .front {
+    background: #fff;
+    color: #6a3aff;
+    font-weight: 900;
+    transform: rotateY(180deg);
+    box-shadow: 0 0 18px #a280ffaa;
+  }
+  .memory-card .back {
+    background: linear-gradient(135deg, #8156ff, #46279e);
+    box-shadow: inset 0 0 12px #6a3affcc;
+  }
+  .memory-card.matched {
+    cursor: default;
+    box-shadow: 0 0 22px 3px #d0aaffcc;
+    background: linear-gradient(135deg, #9a74ff, #5937bb);
+  }
+
+  /* كرة القدم */
+  #soccer-field {
+    position: relative;
+    width: 320px;
+    height: 220px;
+    margin: 20px auto 10px;
+    background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Soccer_field.svg/320px-Soccer_field.svg.png') no-repeat center/contain;
+    border-radius: 20px;
+    box-shadow: 0 0 25px #7a49ffaa inset;
+  }
+  #goal {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 80px;
+    background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Soccer_goal.svg/120px-Soccer_goal.svg.png') no-repeat center/contain;
+  }
+  #keeper {
+    position: absolute;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 100px;
+    background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Goalkeeper_icon.svg/80px-Goalkeeper_icon.svg.png') no-repeat center/contain;
+    transition: left 0.3s ease;
+  }
+  #ball {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50px;
+    height: 50px;
+    background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Soccerball.svg/50px-Soccerball.svg.png') no-repeat center/contain;
+    transition: bottom 0.5s ease, left 0.3s ease;
+    cursor: pointer;
+  }
+  /* تأثير هدف */
+  #ball.goal-animation {
+    animation: goalbounce 1s ease forwards;
+  }
+  @keyframes goalbounce {
+    0% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(-40px); }
+    100% { transform: translateX(-50%) translateY(0); }
+  }
+
+  /* جمع سريع */
+  #quickmath input {
+    font-size: 24px;
+    padding: 8px 14px;
+    border-radius: 30px;
+    border: none;
+    width: 120px;
+    text-align: center;
+    box-shadow: 0 0 15px #a280ffaa inset;
+    margin-top: 10px;
+    outline: none;
+  }
+
+  /* زرار اللعبة (موحد) */
+  .game-btn {
+    background: linear-gradient(135deg, #a57aff, #5a2abb);
+    border: none;
+    border-radius: 30px;
+    color: white;
+    font-size: 20px;
+    padding: 14px 32px;
+    cursor: pointer;
+    font-weight: 700;
+    box-shadow: 0 4px 10px #8b51ff88;
+    transition: all 0.3s ease;
+    user-select: none;
+    margin-top: 15px;
+    min-width: 180px;
+  }
+  .game-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #5a2abb, #a57aff);
+    transform: scale(1.07);
+    box-shadow: 0 6px 16px #b98cffcc;
+  }
+  .game-btn:disabled {
+    background: #5a2abb88;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+  }
+</style>
+</head>
+<body>
+
+<h1>ألعاب ممتعة وجديدة</h1>
+<div class="player-name-container">
+  <input type="text" id="playerName" placeholder="أدخل اسمك هنا" />
+</div>
+
+<nav class="menu" aria-label="قائمة الألعاب">
+  <button onclick="showGame('jump')">قفز 🦘</button>
+  <button onclick="showGame('quickmath')">جمع سريع ➕</button>
+  <button onclick="showGame('memory')">ذاكرة 🧠</button>
+  <button onclick="showGame('volley')">كرة طائرة 🏐</button>
+  <button onclick="showGame('guess')">تخمين رقم 🔢</button>
+  <button onclick="showGame('fastclicker')">نقر سريع 🖱️</button>
+  <button onclick="showGame('soccer')">كرة قدم ⚽</button>
+</nav>
+
+<button id="show-top10-btn" onclick="toggleTop10()">📊 عرض أعلى 10 لاعبين</button>
+<section id="top10-section" aria-live="polite" aria-atomic="true" style="display:none;">
+  <h3>🏆 أفضل 10 لاعبين بالنقاط</h3>
+  <ul id="top10-list"></ul>
+</section>
+
+<div id="notification" class="notification-bar" role="alert" aria-live="assertive" aria-atomic="true"></div>
+
+<!-- ألعاب -->
+<section id="jump" class="game" role="region" aria-label="لعبة القفز">
+  <h2>لعبة القفز 🦘</h2>
+  <p>اضغط على الزر للقفز وكسب نقاط!</p>
+  <button class="game-btn" onclick="jumpAction()">🦘 اقفز!</button>
+  <p class="status" id="jump-status" aria-live="polite"></p>
+</section>
+
+<section id="quickmath" class="game" role="region" aria-label="لعبة الجمع السريع">
+  <h2>لعبة الجمع السريع ➕</h2>
+  <p>اجمع الرقمين وأدخل الناتج!</p>
+  <div id="quickmath-question" style="font-size: 28px; margin-top: 15px;"></div>
+  <input type="number" id="quickmath-answer" aria-label="إجابة الجمع السريع" />
+  <br />
+  <button class="game-btn" onclick="checkQuickMath()">تحقق</button>
+  <p class="status" id="quickmath-status" aria-live="polite"></p>
+</section>
+
+<section id="memory" class="game" role="region" aria-label="لعبة الذاكرة">
+  <h2>لعبة الذاكرة 🧠</h2>
+  <p>اضغط على البطاقات لتطابقها!</p>
+  <div class="memory-grid" id="memory-grid" aria-label="شبكة بطاقات الذاكرة"></div>
+  <p class="status" id="memory-status" aria-live="polite"></p>
+</section>
+
+<section id="volley" class="game" role="region" aria-label="لعبة كرة الطائرة">
+  <h2>لعبة كرة الطائرة 🏐</h2>
+  <p>اضغط على الكرة لكسب النقاط!</p>
+  <button class="game-btn" onclick="volleyAction()">🏐 اضغط على الكرة!</button>
+  <p class="status" id="volley-status" aria-live="polite"></p>
+</section>
+
+<section id="guess" class="game" role="region" aria-label="لعبة تخمين الرقم">
+  <h2>لعبة تخمين رقم 🔢</h2>
+  <p>اختر رقم بين 1 و 20!</p>
+  <input type="number" id="guess-input" min="1" max="20" aria-label="ادخل رقم التخمين" />
+  <br />
+  <button class="game-btn" onclick="checkGuess()">تحقق</button>
+  <p class="status" id="guess-status" aria-live="polite"></p>
+</section>
+
+<section id="fastclicker" class="game" role="region" aria-label="لعبة النقر السريع">
+  <h2>لعبة النقر السريع 🖱️</h2>
+  <p>انقر على الزر بأسرع ما يمكن خلال 5 ثواني!</p>
+  <button class="game-btn" id="fastclick-btn" onclick="fastClick()" disabled>🖱️ انقر هنا!</button>
+  <br />
+  <button class="game-btn" onclick="startFastClick()">ابدأ اللعبة</button>
+  <p class="status" id="fastclick-status" aria-live="polite"></p>
+</section>
+
+<section id="soccer" class="game" role="region" aria-label="لعبة كرة القدم">
+  <h2>لعبة كرة القدم ⚽</h2>
+  <p>اضغط على الكرة لتسديد هدف وحاول تجاوز الحارس!</p>
+  <div id="soccer-field">
+    <div id="goal"></div>
+    <div id="keeper"></div>
+    <div id="ball" onclick="kickBall()" role="button" tabindex="0" aria-label="اضغط لتسديد الكرة"></div>
+  </div>
+  <p class="status" id="soccer-status" aria-live="polite"></p>
+</section>
+
+<script>
+  // ---------------------------
+  // دوال مساعدة لتخزين واسترجاع اللاعبين والنقاط
+  // ---------------------------
+  function getPlayersData() {
+    const data = localStorage.getItem('playersData');
+    return data ? JSON.parse(data) : {};
+  }
+  function savePlayersData(data) {
+    localStorage.setItem('playersData', JSON.stringify(data));
+  }
+
+  // عرض الإشعارات
+  const notification = document.getElementById('notification');
+  let notifTimeout;
+  function showNotification(msg) {
+    clearTimeout(notifTimeout);
+    notification.innerText = msg;
+    notification.style.display = 'block';
+    notifTimeout = setTimeout(() => {
+      notification.style.display = 'none';
+    }, 5000);
+  }
+
+  // جلب اسم اللاعب مع تعيين القيمة الافتراضية
+  function playerName() {
+    const name = document.getElementById('playerName').value.trim();
+    return name || 'لاعب مجهول';
+  }
+
+  // عرض أو إخفاء قائمة أفضل 10 لاعبين
+  const top10Section = document.getElementById('top10-section');
+  const top10List = document.getElementById('top10-list');
+
+  function toggleTop10() {
+    if (top10Section.style.display === 'none' || !top10Section.style.display) {
+      top10Section.style.display = 'block';
+      showTop10();
+    } else {
+      top10Section.style.display = 'none';
+    }
+  }
+
+  // عرض أعلى 10 لاعبين من جميع الألعاب والنقاط مجتمعين
+  function showTop10() {
+    const data = getPlayersData();
+
+    // هيكل البيانات:
+    // data = {
+    //   "محمد": {jumpPoints: 3, quickMathPoints: 5, memoryPoints: 20, volleyPoints: 0, guessPoints: 1, fastClicksTotal: 50, soccerPoints: 7},
+    //   "أحمد": {jumpPoints: 2, ... },
+    //   ...
+    // }
+
+    // حساب المجموع لكل لاعب
+    const scores = [];
+    for (const [name, scoresObj] of Object.entries(data)) {
+      let total = 0;
+      for (const val of Object.values(scoresObj)) {
+        total += Number(val) || 0;
+      }
+      scores.push({ name, total });
+    }
+
+    // ترتيب حسب المجموع تنازلياً
+    scores.sort((a, b) => b.total - a.total);
+
+    // عرض أول 10 لاعبين
+    top10List.innerHTML = '';
+    if(scores.length === 0) {
+      top10List.innerHTML = '<li>لا يوجد لاعبين مسجلين بعد.</li>';
+      return;
+    }
+    scores.slice(0, 10).forEach((player, i) => {
+      top10List.innerHTML += `<li>#${i+1} ${player.name} - ${player.total} نقطة</li>`;
+    });
+  }
+
+  // ---------------------------
+  // تحديث النقاط لأي لاعب في اللعبة المحددة
+  // ---------------------------
+  function updatePlayerPoints(gameKey, increment = 1) {
+    const name = playerName();
+    if (!name) {
+      showNotification('من فضلك أدخل اسمك للبدء باللعب');
+      return false;
+    }
+
+    const data = getPlayersData();
+
+    if (!data[name]) {
+      data[name] = {};
+    }
+    if (!data[name][gameKey]) {
+      data[name][gameKey] = 0;
+    }
+    data[name][gameKey] += increment;
+
+    savePlayersData(data);
+    return true;
+  }
+
+  // --- لعبة القفز 🦘 ---
+  let jumpPoints = 0;
+  function jumpAction() {
+    if(updatePlayerPoints('jumpPoints', 1)) {
+      jumpPoints++;
+      document.getElementById('jump-status').innerText = `🦘 قفزت! نقاطك: ${jumpPoints}`;
+      showNotification(`قفزت وزدت نقاط! مجموع نقاطك: ${jumpPoints}`);
+    }
+  }
+
+  // --- لعبة الجمع السريع ➕ ---
+  let quickMathCurrent = {};
+  let quickMathPoints = 0;
+
+  function generateQuickMath() {
+    const a = Math.floor(Math.random() * 20) + 1;
+    const b = Math.floor(Math.random() * 20) + 1;
+    quickMathCurrent = { a, b };
+    document.getElementById('quickmath-question').innerText = `${a} + ${b} = ?`;
+  }
+  function checkQuickMath() {
+    const answer = parseInt(document.getElementById('quickmath-answer').value);
+    const correct = quickMathCurrent.a + quickMathCurrent.b;
+    if (answer === correct) {
+      if(updatePlayerPoints('quickMathPoints', 1)) {
+        quickMathPoints++;
+        document.getElementById('quickmath-status').innerText = `✅ صحيح! نقاطك: ${quickMathPoints}`;
+        showNotification(`أحسنت! نقطة جديدة في الجمع السريع.`);
+        generateQuickMath();
+        document.getElementById('quickmath-answer').value = '';
+      }
+    } else {
+      document.getElementById('quickmath-status').innerText = '❌ حاول مرة أخرى.';
+    }
+  }
+
+  // --- لعبة الذاكرة 🧠 ---
+  const symbols = ['🍎', '🐶', '⚽', '🎵', '🚀', '🍕', '🌟', '🐱'];
+  let cardsArray = [];
+  let firstCard = null;
+  let secondCard = null;
+  let lockBoard = false;
+  let matches = 0;
+  let memoryPoints = 0;
+
+  function createMemoryBoard() {
+    const grid = document.getElementById('memory-grid');
+    grid.innerHTML = '';
+    matches = 0;
+    firstCard = null;
+    secondCard = null;
+    lockBoard = false;
+    const data = getPlayersData();
+    memoryPoints = 0;
+    const name = playerName();
+    if (data[name] && data[name].memoryPoints) memoryPoints = data[name].memoryPoints;
+    cardsArray = [...symbols, ...symbols];
+    shuffle(cardsArray);
+    cardsArray.forEach((symbol, index) => {
+      const card = document.createElement('div');
+      card.classList.add('memory-card');
+      card.setAttribute('data-symbol', symbol);
+      card.setAttribute('tabindex', '0');
+      card.setAttribute('aria-label', 'بطاقة ذاكرة، اضغط لتقليبها');
+      card.innerHTML = `
+        <div class="front">${symbol}</div>
+        <div class="back"></div>
+      `;
+      card.addEventListener('click', () => flipCard(card));
+      card.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          flipCard(card);
+        }
+      });
+      grid.appendChild(card);
+    });
+    document.getElementById('memory-status').innerText = `نقاطك: ${memoryPoints}`;
+  }
+
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+
+  function flipCard(card) {
+    if (lockBoard) return;
+    if (card === firstCard) return;
+    card.classList.add('flip');
+    if (!firstCard) {
+      firstCard = card;
+      return;
+    }
+    secondCard = card;
+    lockBoard = true;
+    checkForMatch();
+  }
+
+  function checkForMatch() {
+    const isMatch = firstCard.dataset.symbol === secondCard.dataset.symbol;
+    if (isMatch) {
+      disableCards();
+      updateMemoryScore();
+    } else {
+      unflipCards();
+    }
+  }
+
+  function disableCards() {
+    firstCard.removeEventListener('click', () => flipCard(firstCard));
+    secondCard.removeEventListener('click', () => flipCard(secondCard));
+    firstCard.classList.add('matched');
+    secondCard.classList.add('matched');
+    resetBoard();
+    matches++;
+    if (matches === cardsArray.length / 2) {
+      document.getElementById('memory-status').innerText = '🎉 مبروك! أكملت اللعبة!';
+      showNotification('🎉 مبروك! أنهيت لعبة الذاكرة!');
+    }
+  }
+
+  function unflipCards() {
+    setTimeout(() => {
+      firstCard.classList.remove('flip');
+      secondCard.classList.remove('flip');
+      resetBoard();
+    }, 1100);
+  }
+
+  function resetBoard() {
+    [firstCard, secondCard] = [null, null];
+    lockBoard = false;
+  }
+
+  function updateMemoryScore() {
+    memoryPoints += 10;
+    const name = playerName();
+    const data = getPlayersData();
+    if (!data[name]) data[name] = {};
+    data[name].memoryPoints = memoryPoints;
+    savePlayersData(data);
+    document.getElementById('memory-status').innerText = `نقاطك: ${memoryPoints}`;
+  }
+
+  // --- لعبة الكرة الطائرة 🏐 ---
+  let volleyPoints = 0;
+  function volleyAction() {
+    if(updatePlayerPoints('volleyPoints', 1)) {
+      volleyPoints++;
+      document.getElementById('volley-status').innerText = `🏐 نقاطك: ${volleyPoints}`;
+      showNotification('🏐 ضربت الكرة وزدت نقاط!');
+    }
+  }
+
+  // --- لعبة التخمين 🔢 ---
+  let guessNumber = 0;
+  let guessPoints = 0;
+  function generateGuessNumber() {
+    guessNumber = Math.floor(Math.random() * 20) + 1;
+  }
+  function checkGuess() {
+    const guessInput = parseInt(document.getElementById('guess-input').value);
+    if (!guessInput || guessInput < 1 || guessInput > 20) {
+      document.getElementById('guess-status').innerText = '❌ من فضلك أدخل رقم بين 1 و 20';
+      return;
+    }
+    if (guessInput === guessNumber) {
+      if(updatePlayerPoints('guessPoints', 1)) {
+        guessPoints++;
+        document.getElementById('guess-status').innerText = `🎉 صح! نقاطك: ${guessPoints}`;
+        showNotification('🎉 أحسنت! رقم صحيح!');
+        generateGuessNumber();
+        document.getElementById('guess-input').value = '';
+      }
+    } else if (guessInput < guessNumber) {
+      document.getElementById('guess-status').innerText = '⬆️ رقم أكبر حاول مرة أخرى.';
+    } else {
+      document.getElementById('guess-status').innerText = '⬇️ رقم أصغر حاول مرة أخرى.';
+    }
+  }
+
+  // --- لعبة النقر السريع 🖱️ ---
+  let fastClickCount = 0;
+  let fastClickTimer = null;
+
+  function startFastClick() {
+    fastClickCount = 0;
+    document.getElementById('fastclick-status').innerText = 'ابدأ بالنقر!';
+    document.getElementById('fastclick-btn').disabled = false;
+    document.getElementById('fastclick-btn').focus();
+    fastClickTimer = setTimeout(endFastClick, 5000);
+  }
+
+  function fastClick() {
+    fastClickCount++;
+    document.getElementById('fastclick-status').innerText = `نقراتك: ${fastClickCount}`;
+  }
+
+  function endFastClick() {
+    document.getElementById('fastclick-btn').disabled = true;
+    const name = playerName();
+    if (!name) {
+      showNotification('من فضلك أدخل اسمك للبدء باللعب');
+      return;
+    }
+    const data = getPlayersData();
+    if (!data[name]) data[name] = {};
+    let total = Number(data[name].fastClicksTotal) || 0;
+    total += fastClickCount;
+    data[name].fastClicksTotal = total;
+    savePlayersData(data);
+    document.getElementById('fastclick-status').innerText = `انتهى الوقت! مجموع نقراتك الكلي: ${total}`;
+    showNotification(`🖱️ انتهى الوقت، نقراتك: ${fastClickCount}`);
+  }
+
+  // --- لعبة كرة القدم ⚽ ---
+  let soccerPoints = 0;
+  const keeper = document.getElementById('keeper');
+  const ball = document.getElementById('ball');
+  const soccerStatus = document.getElementById('soccer-status');
+
+  function kickBall() {
+    const directions = ['left', 'center', 'right'];
+    const direction = directions[Math.floor(Math.random() * directions.length)];
+
+    let keeperPos;
+    if (direction === 'left') keeperPos = '35%';
+    else if (direction === 'center') keeperPos = '50%';
+    else keeperPos = '65%';
+
+    keeper.style.left = keeperPos;
+
+    if (direction === 'left') ball.style.left = '35%';
+    else if (direction === 'center') ball.style.left = '50%';
+    else ball.style.left = '65%';
+
+    const save = Math.random() < 0.5;
+
+    if (save) {
+      soccerStatus.innerText = '🧤 الحارس صد الكرة!';
+    } else {
+      soccerStatus.innerText = '⚽ هدف!!!';
+      soccerPoints++;
+      const name = playerName();
+      if (!name) {
+        showNotification('من فضلك أدخل اسمك للبدء باللعب');
+        return;
+      }
+      const data = getPlayersData();
+      if (!data[name]) data[name] = {};
+      data[name].soccerPoints = (data[name].soccerPoints || 0) + 1;
+      soccerPoints = data[name].soccerPoints;
+      savePlayersData(data);
+      ball.classList.add('goal-animation');
+      setTimeout(() => {
+        ball.classList.remove('goal-animation');
+        resetSoccerBall();
+      }, 1000);
+    }
+  }
+
+  function resetSoccerBall() {
+    keeper.style.left = '50%';
+    ball.style.left = '50%';
+    const name = playerName();
+    const data = getPlayersData();
+    soccerPoints = 0;
+    if (data[name] && data[name].soccerPoints) soccerPoints = data[name].soccerPoints;
+    soccerStatus.innerText = `نقاطك: ${soccerPoints}`;
+  }
+
+  // تغيير اللعبة المعروضة
+  function showGame(gameId) {
+    const games = document.querySelectorAll('.game');
+    games.forEach(game => {
+      if (game.id === gameId) {
+        game.classList.add('active');
+        if (gameId === 'quickmath') generateQuickMath();
+        if (gameId === 'memory') createMemoryBoard();
+        if (gameId === 'guess') generateGuessNumber();
+        if (gameId === 'soccer') resetSoccerBall();
+      } else {
+        game.classList.remove('active');
+      }
+    });
+  }
+
+  // بدء عرض لعبة القفز بشكل افتراضي
+  window.onload = () => {
+    showGame('jump');
+  };
+</script>
+
+</body>
+</html>
